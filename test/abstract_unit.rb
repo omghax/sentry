@@ -4,13 +4,12 @@ require 'rubygems'
 require 'test/unit'
 require 'active_record'
 require 'active_record/fixtures'
-require 'active_support/binding_of_caller'
-require 'active_support/breakpoint'
 require "#{File.dirname(__FILE__)}/../lib/sentry"
 
 config_location = File.dirname(__FILE__) + '/database.yml'
 
 config = YAML::load(IO.read(config_location))
+ActiveRecord::Base.configurations = config
 ActiveRecord::Base.logger = Logger.new(File.dirname(__FILE__) + "/debug.log")
 ActiveRecord::Base.establish_connection(config[ENV['DB'] || 'sqlite'])
 
