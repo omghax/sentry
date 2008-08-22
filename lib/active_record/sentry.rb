@@ -3,6 +3,7 @@ module ActiveRecord # :nodoc:
     def self.included(base) # :nodoc:
       base.extend ClassMethods
       base.class_inheritable_array :sentry_columns
+      base.write_inheritable_attribute :sentry_columns, []
       base.alias_method_chain :read_attribute,  :sentry
       base.alias_method_chain :write_attribute, :sentry
     end
