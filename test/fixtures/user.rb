@@ -1,6 +1,16 @@
 class User < ActiveRecord::Base
   generates_crypted :creditcard, :mode => :asymmetric
-  
+
+  class ComposedString
+    def initialize(value)
+      @value = value
+    end
+
+    attr_reader :value
+  end
+
+  composed_of :composed_creditcard, :class_name => 'User::ComposedString', :mapping => %w(creditcard value)
+
   def self.validates_password
     validates_presence_of :crypted_password
     validates_presence_of :password, :on => :create

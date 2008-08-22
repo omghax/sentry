@@ -2,8 +2,27 @@ module ActiveRecord # :nodoc:
   module Sentry
     def self.included(base) # :nodoc:
       base.extend ClassMethods
+      base.class_inheritable_array :sentry_columns
+      base.alias_method_chain :read_attribute,  :sentry
+      base.alias_method_chain :write_attribute, :sentry
     end
-  
+
+    def read_attribute_with_sentry(attr_name)
+      if self.class.sentry_columns.include?(attr_name.to_s)
+        send(attr_name)
+      else
+        read_attribute_without_sentry(attr_name)
+      end
+    end
+
+    def write_attribute_with_sentry(attr_name, value)
+      if self.class.sentry_columns.include?(attr_name.to_s)
+        send("#{attr_name}=", value)
+      else
+        write_attribute_without_sentry(attr_name, value)
+      end
+    end
+
     module ClassMethods
       def generates_crypted(attr_name, options = {})
         mode = options[:mode] || :sha
@@ -23,6 +42,7 @@ module ActiveRecord # :nodoc:
       end
 
       def asymmetrically_encrypts(attr_name)
+        write_inheritable_array(:sentry_columns, [attr_name.to_s])
         temp_sentry = ::Sentry::AsymmetricSentryCallback.new(attr_name)
         before_validation temp_sentry
         after_save temp_sentry
@@ -50,6 +70,7 @@ module ActiveRecord # :nodoc:
       end
 
       def symmetrically_encrypts(attr_name)
+        write_inheritable_array(:sentry_columns, [attr_name.to_s])
         temp_sentry = ::Sentry::SymmetricSentryCallback.new(attr_name)
         before_validation temp_sentry
         after_save temp_sentry

@@ -53,7 +53,19 @@ class AsymmetricSentryCallbackTest < Test::Unit::TestCase
     use_encrypted_keys
     assert_equal @orig, users(:user_2).creditcard(@key)
   end
-  
+
+  def test_should_decrypt_composed_creditcard
+    assert_instance_of User::ComposedString, users(:user_1).composed_creditcard
+  end
+
+  def test_should_encrypt_composed_creditcard
+    u = User.create :login => 'jones'
+    u.composed_creditcard = User::ComposedString.new(@orig)
+    assert_equal @orig, u.creditcard
+    assert u.save
+    assert !u.crypted_creditcard.empty?
+  end
+
   def use_encrypted_keys
     Sentry::AsymmetricSentry.default_public_key_file = @encrypted_public_key_file
     Sentry::AsymmetricSentry.default_private_key_file = @encrypted_private_key_file
